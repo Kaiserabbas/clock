@@ -1,0 +1,16 @@
+{
+  "short_name": "Clock",
+  "name": "World Clock & Local Time",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192 512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#12151c",
+  "theme_color": "#12151c",
+  "display": "standalone",
+  "orientation": "portrait-primary"
+}
