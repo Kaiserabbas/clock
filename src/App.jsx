@@ -5,9 +5,18 @@ import WorldClockCard from "./components/WorldClockCard";
 import AppearanceSettings from "./components/AppearanceSettings";
 import CitySettings from "./components/CitySettings";
 import TimezonePickerModal from "./components/TimezonePickerModal";
+import FullscreenDeskClock from "./components/FullscreenDeskClock";
 import { THEMES, FONTS, STORAGE_KEY, DEFAULT_SETTINGS } from "./constants/themes";
 import { readTime } from "./utils/time";
-import { Clock as ClockIcon, Globe, Palette, Settings } from "lucide-react";
+import { getWeatherForTimezone } from "./services/weather";
+import {
+  Clock as ClockIcon,
+  Globe,
+  Palette,
+  Settings,
+  Maximize2,
+  Calendar,
+} from "lucide-react";
 import { App as CapApp } from "@capacitor/app";
 import { StatusBar, Style } from "@capacitor/status-bar";
 
@@ -31,6 +40,8 @@ export default function App() {
   const [settings, setSettings] = useState(loadSettings);
   const [now, setNow] = useState(() => new Date());
   const [editingCityIndex, setEditingCityIndex] = useState(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [localWeather, setLocalWeather] = useState(null);
 
   // High precision timer for clock hands
   useEffect(() => {
@@ -41,24 +52,65 @@ export default function App() {
     return () => clearInterval(intervalId);
   }, [settings.smoothSweep]);
 
+  // Fetch local weather
+  const localTz = Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Dubai";
+  useEffect(() => {
+    let isMounted = true;
+    getWeatherForTimezone(localTz).then((data) => {
+      if (isMounted && data) {
+        setLocalWeather(data);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, [localTz]);
+
   // Capacitor Native Status Bar & Back Button Integration
   useEffect(() => {
+    if (isFullscreen) return;
     const theme = THEMES[settings.theme] || THEMES.midnight;
     try {
-      // Sync status bar color on mobile
       StatusBar.setBackgroundColor({ color: theme.bg }).catch(() => {});
-      const isDark = theme.bg === "#000000" || theme.bg === "#0f172a" || theme.bg === "#0a1f18" || theme.bg === "#0b2038";
+      const isDark =
+        theme.bg === "#000000" ||
+        theme.bg === "#0f172a" ||
+        theme.bg === "#0a1f18" ||
+        theme.bg === "#0b2038";
       StatusBar.setStyle({ style: isDark ? Style.Dark : Style.Light }).catch(() => {});
     } catch (e) {
       // Not on native device
     }
-  }, [settings.theme]);
+  }, [settings.theme, isFullscreen]);
 
+  // Sync fullscreen change with document events (e.g. Esc key pressed)
+  useEffect(() => {
+    const handleFsChange = () => {
+      const isDocFs = !!(
+        document.fullscreenElement ||
+        document.webkitFullscreenElement ||
+        document.mozFullScreenElement
+      );
+      if (!isDocFs && isFullscreen) {
+        setIsFullscreen(false);
+      }
+    };
+    document.addEventListener("fullscreenchange", handleFsChange);
+    document.addEventListener("webkitfullscreenchange", handleFsChange);
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFsChange);
+      document.removeEventListener("webkitfullscreenchange", handleFsChange);
+    };
+  }, [isFullscreen]);
+
+  // Hardware Back Button (Capacitor)
   useEffect(() => {
     let removeListener = null;
     try {
       const backListener = CapApp.addListener("backButton", ({ canGoBack }) => {
-        if (editingCityIndex !== null) {
+        if (isFullscreen) {
+          exitFullscreenMode();
+        } else if (editingCityIndex !== null) {
           setEditingCityIndex(null);
         } else if (activeTab !== "clock") {
           setActiveTab("clock");
@@ -75,7 +127,7 @@ export default function App() {
     return () => {
       if (removeListener) removeListener();
     };
-  }, [activeTab, editingCityIndex]);
+  }, [activeTab, editingCityIndex, isFullscreen]);
 
   const saveSettings = useCallback((newSettings) => {
     setSettings(newSettings);
@@ -85,6 +137,40 @@ export default function App() {
       // ignore
     }
   }, []);
+
+  const enterFullscreenMode = () => {
+    setIsFullscreen(true);
+    try {
+      const el = document.documentElement;
+      if (el.requestFullscreen) {
+        el.requestFullscreen().catch(() => {});
+      } else if (el.webkitRequestFullscreen) {
+        el.webkitRequestFullscreen();
+      }
+    } catch (e) {}
+  };
+
+  const exitFullscreenMode = () => {
+    setIsFullscreen(false);
+    try {
+      if (
+        document.fullscreenElement ||
+        document.webkitFullscreenElement ||
+        document.mozFullScreenElement
+      ) {
+        if (document.exitFullscreen) {
+          document.exitFullscreen().catch(() => {});
+        } else if (document.webkitExitFullscreen) {
+          document.webkitExitFullscreen();
+        }
+      }
+    } catch (e) {}
+  };
+
+  const toggleTempUnit = () => {
+    const nextUnit = settings.tempUnit === "F" ? "C" : "F";
+    saveSettings({ ...settings, tempUnit: nextUnit });
+  };
 
   const currentTheme = THEMES[settings.theme] || THEMES.midnight;
   const parts = settings.parts || {};
@@ -111,13 +197,6 @@ export default function App() {
 
   // Local Time Information
   const localTime = readTime(now);
-  const localTz = Intl.DateTimeFormat().resolvedOptions().timeZone || "Local time";
-  const dateFormatted = now.toLocaleDateString(undefined, {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
 
   // Handlers for City Management
   const handleUpdateCity = (index, patch) => {
@@ -145,157 +224,206 @@ export default function App() {
 
   return (
     <div className="clock-app" style={cssVariables}>
-      {/* Top Header / Brand */}
-      <header className="app-header">
-        <div className="header-brand">
-          <ClockIcon size={20} className="brand-icon" />
-          <h1 className="brand-title">World Clock</h1>
-        </div>
+      {/* Fullscreen Mobile / Desk Mode Overlay */}
+      {isFullscreen ? (
+        <FullscreenDeskClock
+          time={localTime}
+          now={now}
+          cities={settings.cities}
+          settings={settings}
+          weather={localWeather}
+          tempUnit={settings.tempUnit || "C"}
+          onToggleTempUnit={toggleTempUnit}
+          onToggle1224={() =>
+            saveSettings({ ...settings, is24Hour: !settings.is24Hour })
+          }
+          onExitFullscreen={exitFullscreenMode}
+        />
+      ) : (
+        <>
+          {/* Top Header / Brand */}
+          <header className="app-header">
+            <div className="header-brand">
+              <ClockIcon size={20} className="brand-icon" />
+              <h1 className="brand-title">World Clock</h1>
+            </div>
 
-        {/* Desktop / Tablet Navigation Pills */}
-        <nav className="desktop-nav">
-          <button
-            type="button"
-            className={`nav-pill ${activeTab === "clock" ? "active" : ""}`}
-            onClick={() => setActiveTab("clock")}
-          >
-            <ClockIcon size={16} />
-            <span>Clocks</span>
-          </button>
-          <button
-            type="button"
-            className={`nav-pill ${activeTab === "cities" ? "active" : ""}`}
-            onClick={() => setActiveTab("cities")}
-          >
-            <Globe size={16} />
-            <span>Cities</span>
-          </button>
-          <button
-            type="button"
-            className={`nav-pill ${activeTab === "appearance" ? "active" : ""}`}
-            onClick={() => setActiveTab("appearance")}
-          >
-            <Palette size={16} />
-            <span>Theme & Style</span>
-          </button>
-        </nav>
-      </header>
+            {/* Top Bar Actions */}
+            <div className="header-actions">
+              <button
+                type="button"
+                className="header-fs-btn"
+                onClick={enterFullscreenMode}
+                title="Enter Fullscreen Desk Mode"
+              >
+                <Maximize2 size={16} />
+                <span className="fs-btn-label">Fullscreen</span>
+              </button>
 
-      {/* Main Content Area */}
-      <main className="app-main-content">
-        {activeTab === "clock" && (
-          <div className="clock-view">
-            {/* Primary Local Analog Clock */}
-            <section className="primary-clock-section">
-              <div className="primary-analog-wrapper">
-                <AnalogClock
-                  time={localTime}
-                  showSeconds={settings.showSeconds}
-                  smoothSweep={settings.smoothSweep}
-                />
-              </div>
-
-              {/* Digital readout & location */}
-              <DigitalDisplay
-                time={localTime}
-                is24Hour={settings.is24Hour}
-                showSeconds={settings.showSeconds}
-                onToggleFormat={() =>
-                  saveSettings({ ...settings, is24Hour: !settings.is24Hour })
-                }
-                subtitle={`${dateFormatted} · ${localTz.replace(/_/g, " ")}`}
-              />
-            </section>
-
-            {/* Monitored World Clocks Section */}
-            <section className="world-clocks-section">
-              <div className="world-clocks-bar">
-                <h2 className="world-clocks-heading">World Clocks</h2>
+              {/* Desktop / Tablet Navigation Pills */}
+              <nav className="desktop-nav">
                 <button
                   type="button"
-                  className="manage-cities-link"
+                  className={`nav-pill ${activeTab === "clock" ? "active" : ""}`}
+                  onClick={() => setActiveTab("clock")}
+                >
+                  <ClockIcon size={16} />
+                  <span>Clocks</span>
+                </button>
+                <button
+                  type="button"
+                  className={`nav-pill ${activeTab === "cities" ? "active" : ""}`}
                   onClick={() => setActiveTab("cities")}
                 >
-                  <Settings size={14} />
-                  <span>Manage Cities</span>
+                  <Globe size={16} />
+                  <span>Cities</span>
                 </button>
-              </div>
+                <button
+                  type="button"
+                  className={`nav-pill ${activeTab === "appearance" ? "active" : ""}`}
+                  onClick={() => setActiveTab("appearance")}
+                >
+                  <Palette size={16} />
+                  <span>Theme & Style</span>
+                </button>
+              </nav>
+            </div>
+          </header>
 
-              <div className="world-clocks-grid">
-                {settings.cities.map((city, index) => (
-                  <WorldClockCard
-                    key={`${city.tz}-${index}`}
-                    city={city}
-                    now={now}
-                    localDayKey={localTime.dayKey}
+          {/* Main Content Area */}
+          <main className="app-main-content">
+            {activeTab === "clock" && (
+              <div className="clock-view">
+                {/* Primary Local Analog Clock */}
+                <section className="primary-clock-section">
+                  <div className="primary-analog-wrapper">
+                    <AnalogClock
+                      time={localTime}
+                      showSeconds={settings.showSeconds}
+                      smoothSweep={settings.smoothSweep}
+                      showDayDate={settings.showDayDate !== false}
+                    />
+                  </div>
+
+                  {/* Digital readout, Weekday, Date & Temperature */}
+                  <DigitalDisplay
+                    time={localTime}
                     is24Hour={settings.is24Hour}
-                    smoothSweep={settings.smoothSweep}
-                    onEdit={() => setEditingCityIndex(index)}
+                    showSeconds={settings.showSeconds}
+                    onToggleFormat={() =>
+                      saveSettings({ ...settings, is24Hour: !settings.is24Hour })
+                    }
+                    weather={localWeather}
+                    tempUnit={settings.tempUnit || "C"}
+                    onToggleTempUnit={toggleTempUnit}
+                    subtitle={`${localTz.replace(/_/g, " ")}`}
                   />
-                ))}
+
+                  {/* Mobile Quick Fullscreen Action Pill */}
+                  <div className="fullscreen-quick-action">
+                    <button
+                      type="button"
+                      className="btn btn-secondary fs-stand-btn"
+                      onClick={enterFullscreenMode}
+                    >
+                      <Maximize2 size={15} />
+                      <span>StandBy Desk Mode</span>
+                    </button>
+                  </div>
+                </section>
+
+                {/* Monitored World Clocks Section */}
+                <section className="world-clocks-section">
+                  <div className="world-clocks-bar">
+                    <h2 className="world-clocks-heading">World Clocks</h2>
+                    <button
+                      type="button"
+                      className="manage-cities-link"
+                      onClick={() => setActiveTab("cities")}
+                    >
+                      <Settings size={14} />
+                      <span>Manage Cities</span>
+                    </button>
+                  </div>
+
+                  <div className="world-clocks-grid">
+                    {settings.cities.map((city, index) => (
+                      <WorldClockCard
+                        key={`${city.tz}-${index}`}
+                        city={city}
+                        now={now}
+                        localDayKey={localTime.dayKey}
+                        is24Hour={settings.is24Hour}
+                        smoothSweep={settings.smoothSweep}
+                        tempUnit={settings.tempUnit || "C"}
+                        onEdit={() => setEditingCityIndex(index)}
+                      />
+                    ))}
+                  </div>
+                </section>
               </div>
-            </section>
-          </div>
-        )}
+            )}
 
-        {activeTab === "cities" && (
-          <CitySettings
-            cities={settings.cities}
-            onUpdateCity={handleUpdateCity}
-            onAddCity={handleAddCity}
-            onRemoveCity={handleRemoveCity}
-            onOpenPicker={(idx) => setEditingCityIndex(idx)}
-            now={now}
-            is24Hour={settings.is24Hour}
-          />
-        )}
+            {activeTab === "cities" && (
+              <CitySettings
+                cities={settings.cities}
+                onUpdateCity={handleUpdateCity}
+                onAddCity={handleAddCity}
+                onRemoveCity={handleRemoveCity}
+                onOpenPicker={(idx) => setEditingCityIndex(idx)}
+                now={now}
+                is24Hour={settings.is24Hour}
+              />
+            )}
 
-        {activeTab === "appearance" && (
-          <AppearanceSettings
-            settings={settings}
-            onChange={saveSettings}
-            onResetDefaults={() => saveSettings(DEFAULT_SETTINGS)}
-          />
-        )}
-      </main>
+            {activeTab === "appearance" && (
+              <AppearanceSettings
+                settings={settings}
+                onChange={saveSettings}
+                onResetDefaults={() => saveSettings(DEFAULT_SETTINGS)}
+              />
+            )}
+          </main>
 
-      {/* Mobile Friendly Bottom Navigation Bar */}
-      <nav className="mobile-bottom-nav">
-        <button
-          type="button"
-          className={`bottom-nav-item ${activeTab === "clock" ? "active" : ""}`}
-          onClick={() => setActiveTab("clock")}
-        >
-          <ClockIcon size={20} />
-          <span>Clock</span>
-        </button>
-        <button
-          type="button"
-          className={`bottom-nav-item ${activeTab === "cities" ? "active" : ""}`}
-          onClick={() => setActiveTab("cities")}
-        >
-          <Globe size={20} />
-          <span>Cities</span>
-        </button>
-        <button
-          type="button"
-          className={`bottom-nav-item ${activeTab === "appearance" ? "active" : ""}`}
-          onClick={() => setActiveTab("appearance")}
-        >
-          <Palette size={20} />
-          <span>Appearance</span>
-        </button>
-      </nav>
+          {/* Mobile Friendly Bottom Navigation Bar */}
+          <nav className="mobile-bottom-nav">
+            <button
+              type="button"
+              className={`bottom-nav-item ${activeTab === "clock" ? "active" : ""}`}
+              onClick={() => setActiveTab("clock")}
+            >
+              <ClockIcon size={20} />
+              <span>Clock</span>
+            </button>
+            <button
+              type="button"
+              className={`bottom-nav-item ${activeTab === "cities" ? "active" : ""}`}
+              onClick={() => setActiveTab("cities")}
+            >
+              <Globe size={20} />
+              <span>Cities</span>
+            </button>
+            <button
+              type="button"
+              className={`bottom-nav-item ${activeTab === "appearance" ? "active" : ""}`}
+              onClick={() => setActiveTab("appearance")}
+            >
+              <Palette size={20} />
+              <span>Appearance</span>
+            </button>
+          </nav>
 
-      {/* Timezone & City Search Modal */}
-      {editingCityIndex !== null && (
-        <TimezonePickerModal
-          initialCity={settings.cities[editingCityIndex]}
-          onSave={handleSavePickedCity}
-          onClose={() => setEditingCityIndex(null)}
-          now={now}
-          is24Hour={settings.is24Hour}
-        />
+          {/* Timezone & City Search Modal */}
+          {editingCityIndex !== null && (
+            <TimezonePickerModal
+              initialCity={settings.cities[editingCityIndex]}
+              onSave={handleSavePickedCity}
+              onClose={() => setEditingCityIndex(null)}
+              now={now}
+              is24Hour={settings.is24Hour}
+            />
+          )}
+        </>
       )}
     </div>
   );

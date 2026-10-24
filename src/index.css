@@ -72,6 +72,42 @@ body {
   color: var(--ink);
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.header-fs-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--card-bg);
+  color: var(--ink);
+  border: 1px solid var(--border);
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.header-fs-btn:hover {
+  background: var(--border);
+  border-color: var(--accent);
+}
+
+.fs-btn-label {
+  display: none;
+}
+
+@media (min-width: 480px) {
+  .fs-btn-label {
+    display: inline;
+  }
+}
+
 /* Desktop Navigation Pills */
 .desktop-nav {
   display: none;
@@ -125,7 +161,7 @@ body {
 .clock-view {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
 }
 
 /* Primary Clock Section */
@@ -134,20 +170,20 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 12px 0 8px;
+  padding: 8px 0 12px;
   text-align: center;
 }
 
 .primary-analog-wrapper {
-  width: min(78vw, 380px);
-  max-height: min(78vw, 380px);
+  width: min(78vw, 370px);
+  max-height: min(78vw, 370px);
   margin-bottom: 12px;
 }
 
 @media (min-width: 768px) {
   .primary-analog-wrapper {
-    width: 400px;
-    max-height: 400px;
+    width: 390px;
+    max-height: 390px;
   }
 }
 
@@ -156,7 +192,7 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
 }
 
 .digital-time-wrapper {
@@ -175,7 +211,7 @@ body {
 }
 
 .digital-time {
-  font-size: clamp(36px, 9vw, 54px);
+  font-size: clamp(38px, 9vw, 56px);
   font-weight: 700;
   letter-spacing: -1px;
   font-variant-numeric: tabular-nums;
@@ -190,12 +226,112 @@ body {
   letter-spacing: 0.5px;
 }
 
-.digital-subtitle {
+/* Weekday and Date Strip */
+.date-weekday-strip {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.weekday-pill {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  color: var(--accent);
+  padding: 3px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.date-separator {
+  color: var(--muted);
   font-size: 14px;
+}
+
+.date-display-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.calendar-icon {
+  color: var(--muted);
+}
+
+/* Temperature Pill */
+.temperature-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  padding: 4px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.15s ease;
+  margin-top: 2px;
+}
+
+.temperature-pill:hover {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.temp-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.temp-condition {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.temp-unit-hint {
+  font-size: 10px;
+  background: var(--border);
+  color: var(--ink);
+  padding: 1px 4px;
+  border-radius: 4px;
+  font-weight: 700;
+}
+
+.digital-subtitle {
+  font-size: 13px;
   font-weight: 500;
   color: var(--muted);
   letter-spacing: 0.2px;
 }
+
+/* Fullscreen Quick Action Pill */
+.fullscreen-quick-action {
+  margin-top: 10px;
+}
+
+.fs-stand-btn {
+  padding: 8px 18px;
+  border-radius: 999px;
+  font-size: 13px;
+}
+
+/* Weather Icons */
+.weather-sun { color: #f59e0b; }
+.weather-moon { color: #38bdf8; }
+.weather-partly { color: #f59e0b; }
+.weather-cloud { color: #94a3b8; }
+.weather-rain { color: #3b82f6; }
+.weather-snow { color: #60a5fa; }
+.weather-storm { color: #eab308; }
+.weather-fog { color: #94a3b8; }
 
 /* World Clocks Section */
 .world-clocks-section {
@@ -212,7 +348,7 @@ body {
 }
 
 .world-clocks-heading {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -313,6 +449,25 @@ body {
   color: var(--ink);
 }
 
+.world-clock-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.world-city-temp {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink);
+  background: var(--bg);
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+}
+
 .edit-city-btn {
   background: transparent;
   border: none;
@@ -345,7 +500,7 @@ body {
 .world-clock-info {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
 }
 
 .world-clock-digital {
@@ -366,6 +521,24 @@ body {
   font-size: 12px;
   font-weight: 700;
   color: var(--accent);
+}
+
+.world-city-date-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.world-city-weekday {
+  color: var(--accent);
+  text-transform: uppercase;
+}
+
+.world-city-date-sep {
+  opacity: 0.5;
 }
 
 .world-clock-subtext {
@@ -623,6 +796,17 @@ body {
   accent-color: var(--accent);
   cursor: pointer;
   flex-shrink: 0;
+}
+
+.form-select-sm {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
 }
 
 /* Parts Colors */
@@ -1056,6 +1240,281 @@ body {
   margin-top: 8px;
 }
 
+/* =========================================================
+   FULLSCREEN DESK / STANDBY MODE
+   ========================================================= */
+.fullscreen-desk-container {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  background-color: var(--bg);
+  color: var(--ink);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: env(safe-area-inset-top, 20px) env(safe-area-inset-right, 24px) env(safe-area-inset-bottom, 20px) env(safe-area-inset-left, 24px);
+  user-select: none;
+  overflow: hidden;
+  transition: opacity 0.3s ease, filter 0.3s ease;
+}
+
+.fullscreen-desk-container.dimmed-mode {
+  filter: brightness(0.35) contrast(0.9);
+}
+
+/* Floating Controls */
+.fullscreen-header-controls {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  z-index: 10;
+}
+
+.fullscreen-header-controls.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-8px);
+}
+
+.fullscreen-header-controls.visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.fs-controls-left, .fs-controls-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.fs-tool-btn, .fs-exit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--card-bg);
+  color: var(--ink);
+  border: 1px solid var(--border);
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  backdrop-filter: blur(8px);
+  transition: all 0.15s ease;
+}
+
+.fs-tool-btn:hover, .fs-exit-btn:hover {
+  background: var(--border);
+  border-color: var(--accent);
+}
+
+.fs-tool-btn.active {
+  background: var(--accent);
+  color: #ffffff;
+  border-color: var(--accent);
+}
+
+.fs-tool-text {
+  display: inline;
+}
+
+/* Fullscreen Stage */
+.fullscreen-stage {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 10px 0;
+}
+
+/* Landscape Mode for Docked Phones & Tablets */
+@media (orientation: landscape) and (min-height: 380px) {
+  .fullscreen-stage.layout-both {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-around;
+    gap: 40px;
+  }
+}
+
+.fs-analog-wrapper {
+  width: min(65vw, 400px);
+  max-height: min(65vw, 400px);
+}
+
+@media (orientation: landscape) {
+  .fs-analog-wrapper {
+    width: min(70vh, 420px);
+    max-height: min(70vh, 420px);
+  }
+}
+
+.fs-info-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.fs-digital-time-wrap {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.fs-digital-time {
+  font-size: clamp(48px, 12vw, 84px);
+  font-weight: 800;
+  letter-spacing: -2px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  color: var(--ink);
+}
+
+.fs-digital-time.ultra-large {
+  font-size: clamp(72px, 20vw, 160px);
+  letter-spacing: -4px;
+}
+
+.fs-digital-ampm {
+  font-size: clamp(20px, 4vw, 32px);
+  font-weight: 800;
+  color: var(--accent);
+}
+
+.fs-date-strip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.fs-weekday-pill {
+  background: var(--accent);
+  color: #ffffff;
+  padding: 4px 14px;
+  border-radius: 999px;
+  font-size: clamp(13px, 2vw, 16px);
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.fs-date-bullet {
+  color: var(--muted);
+  font-size: 16px;
+}
+
+.fs-date-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fs-calendar-icon {
+  color: var(--muted);
+}
+
+.fs-full-date {
+  font-size: clamp(16px, 2.8vw, 24px);
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: 0.2px;
+}
+
+.fs-weather-strip {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  padding: 6px 18px;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  transition: transform 0.15s ease;
+}
+
+.fs-weather-strip:hover {
+  transform: scale(1.03);
+}
+
+.fs-temp-val {
+  font-size: clamp(16px, 2.5vw, 22px);
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.fs-temp-condition {
+  font-size: clamp(13px, 2vw, 16px);
+  font-weight: 600;
+  color: var(--muted);
+}
+
+/* Bottom World Cities Ticker */
+.fs-world-ticker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-top: 8px;
+  transition: opacity 0.35s ease;
+}
+
+.fs-world-ticker.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.fs-world-ticker.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.fs-city-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.fs-city-icon {
+  color: var(--accent);
+}
+
+.fs-city-name {
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.fs-city-time {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Keyframes */
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
