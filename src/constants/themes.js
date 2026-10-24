@@ -100,6 +100,8 @@ export const DEFAULT_SETTINGS = {
   showSeconds: true,
   smoothSweep: true,
   is24Hour: false,
+  tempUnit: "C",
+  showDayDate: true,
   theme: "midnight",
   font: "din",
   parts: {}

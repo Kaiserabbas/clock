@@ -38,9 +38,10 @@ export default function AnalogClock({
   mini = false,
   showSeconds = true,
   smoothSweep = true,
+  showDayDate = true,
   className = "",
 }) {
-  const { h, m, s, ms } = time;
+  const { h, m, s, ms, weekdayShort, day } = time;
   const secValue = smoothSweep ? s + ms / 1000 : s;
   const minAngle = (m + secValue / 60) * 6;
   const hourAngle = ((h % 12) + m / 60 + secValue / 3600) * 30;
@@ -185,6 +186,65 @@ export default function AnalogClock({
       {/* Markers */}
       {hourNumbers}
       {minuteNumbers}
+
+      {/* Luxury Watch Day & Date Aperture Window (Only on main clock, between center and 3 o'clock) */}
+      {!mini && showDayDate && weekdayShort && day && (
+        <g className="day-date-aperture" transform="translate(485, 360)">
+          {/* Beveled Window Frame */}
+          <rect
+            x="0"
+            y="0"
+            width="120"
+            height="40"
+            rx="6"
+            fill="var(--c-face)"
+            stroke="var(--c-ring)"
+            strokeWidth="2"
+            style={{ filter: "drop-shadow(inset 0 1px 3px rgba(0,0,0,0.3))" }}
+          />
+          {/* Divider line between Day and Date */}
+          <line
+            x1="62"
+            y1="4"
+            x2="62"
+            y2="36"
+            stroke="var(--c-ring)"
+            strokeWidth="1"
+            opacity="0.4"
+          />
+          {/* Weekday abbreviation */}
+          <text
+            x="31"
+            y="22"
+            textAnchor="middle"
+            dominantBaseline="central"
+            fill="var(--c-sec)"
+            style={{
+              fontSize: "16px",
+              fontWeight: "800",
+              letterSpacing: "1px",
+              fontFamily: "inherit",
+            }}
+          >
+            {weekdayShort}
+          </text>
+          {/* Day of the month */}
+          <text
+            x="91"
+            y="22"
+            textAnchor="middle"
+            dominantBaseline="central"
+            fill="var(--c-num)"
+            style={{
+              fontSize: "20px",
+              fontWeight: "700",
+              fontFamily: "inherit",
+            }}
+          >
+            {day}
+          </text>
+        </g>
+      )}
 
       {/* Hour Hand */}
       <Hand

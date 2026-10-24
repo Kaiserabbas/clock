@@ -1,5 +1,8 @@
 export const pad = (n) => String(n).padStart(2, "0");
 
+const WEEKDAYS_SHORT = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+const MONTHS_SHORT = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+
 export function readTime(date, tz) {
   const options = {
     hour: "numeric",
@@ -9,20 +12,34 @@ export function readTime(date, tz) {
     year: "numeric",
     month: "numeric",
     day: "numeric",
+    weekday: "long",
   };
   if (tz) {
     options.timeZone = tz;
   }
 
   const parts = new Intl.DateTimeFormat("en-GB", options).formatToParts(date);
-  const get = (type) => Number(parts.find((p) => p.type === type)?.value || 0);
+  const get = (type) => parts.find((p) => p.type === type)?.value || "";
 
-  const h = get("hour");
-  const m = get("minute");
-  const s = get("second");
-  const year = get("year");
-  const month = get("month");
-  const day = get("day");
+  const h = Number(get("hour") || 0);
+  const m = Number(get("minute") || 0);
+  const s = Number(get("second") || 0);
+  const year = Number(get("year") || 2026);
+  const month = Number(get("month") || 1);
+  const day = Number(get("day") || 1);
+  const weekdayLong = get("weekday") || "Today";
+
+  // Formatted date representations
+  const dateObj = new Date(year, month - 1, day);
+  const dayOfWeekIndex = dateObj.getDay();
+  const weekdayShort = WEEKDAYS_SHORT[dayOfWeekIndex] || "TODAY";
+  const monthShort = MONTHS_SHORT[month - 1] || "MON";
+
+  const monthNames = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ];
+  const monthLong = monthNames[month - 1] || "";
 
   return {
     h,
@@ -34,6 +51,12 @@ export function readTime(date, tz) {
     day,
     dayKey: year * 10000 + month * 100 + day,
     isDaytime: h >= 6 && h < 18,
+    weekdayLong,
+    weekdayShort,
+    monthLong,
+    monthShort,
+    fullDateString: `${weekdayLong}, ${day} ${monthLong} ${year}`,
+    shortDateString: `${weekdayShort} ${day} ${monthShort}`,
   };
 }
 

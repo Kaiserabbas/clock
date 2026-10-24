@@ -1,6 +1,6 @@
 import React from "react";
 import { THEMES, FONTS, PART_DEFS } from "../constants/themes";
-import { Palette, Type, Sliders, RotateCcw } from "lucide-react";
+import { Palette, Type, Sliders, RotateCcw, Thermometer, Calendar } from "lucide-react";
 
 export default function AppearanceSettings({
   settings,
@@ -145,6 +145,34 @@ export default function AppearanceSettings({
               checked={settings.is24Hour}
               onChange={(e) => updateSetting("is24Hour", e.target.checked)}
             />
+          </label>
+
+          <label className="toggle-item">
+            <div className="toggle-text">
+              <span className="toggle-title">Analog Day-Date Window</span>
+              <span className="toggle-desc">Display luxury watch weekday and date aperture on analog dial</span>
+            </div>
+            <input
+              type="checkbox"
+              className="toggle-checkbox"
+              checked={settings.showDayDate !== false}
+              onChange={(e) => updateSetting("showDayDate", e.target.checked)}
+            />
+          </label>
+
+          <label className="toggle-item">
+            <div className="toggle-text">
+              <span className="toggle-title">Temperature Unit</span>
+              <span className="toggle-desc">Select Celsius (°C) or Fahrenheit (°F)</span>
+            </div>
+            <select
+              className="form-select-sm"
+              value={settings.tempUnit || "C"}
+              onChange={(e) => updateSetting("tempUnit", e.target.value)}
+            >
+              <option value="C">Celsius (°C)</option>
+              <option value="F">Fahrenheit (°F)</option>
+            </select>
           </label>
         </div>
       </section>

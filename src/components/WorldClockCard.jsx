@@ -1,7 +1,9 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import AnalogClock from "./AnalogClock";
 import { formatDigital, getTimeDifference, readTime } from "../utils/time";
-import { Sun, Moon, Edit3 } from "lucide-react";
+import { formatTemperature, getWeatherForTimezone } from "../services/weather";
+import { WeatherIcon } from "./DigitalDisplay";
+import { Sun, Moon, Edit3, Calendar } from "lucide-react";
 
 export default function WorldClockCard({
   city,
@@ -9,8 +11,23 @@ export default function WorldClockCard({
   localDayKey,
   is24Hour = false,
   smoothSweep = true,
+  tempUnit = "C",
   onEdit,
 }) {
+  const [weather, setWeather] = useState(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    getWeatherForTimezone(city.tz).then((data) => {
+      if (isMounted && data) {
+        setWeather(data);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, [city.tz]);
+
   let time;
   let error = null;
 
@@ -52,7 +69,10 @@ export default function WorldClockCard({
     <div className="world-clock-card" onClick={onEdit} role="button" tabIndex={0}>
       <div className="world-clock-header">
         <div className="world-clock-city-group">
-          <div className="world-clock-daytime-icon" title={time.isDaytime ? "Daytime" : "Nighttime"}>
+          <div
+            className="world-clock-daytime-icon"
+            title={time.isDaytime ? "Daytime" : "Nighttime"}
+          >
             {time.isDaytime ? (
               <Sun size={15} className="sun-icon" />
             ) : (
@@ -62,17 +82,26 @@ export default function WorldClockCard({
           <span className="world-clock-city">{city.name}</span>
         </div>
 
-        <button
-          type="button"
-          className="edit-city-btn"
-          onClick={(e) => {
-            e.stopPropagation();
-            onEdit();
-          }}
-          title="Change City"
-        >
-          <Edit3 size={14} />
-        </button>
+        <div className="world-clock-header-right">
+          {weather && (
+            <div className="world-city-temp">
+              <WeatherIcon condition={weather.condition} size={13} />
+              <span>{formatTemperature(weather.tempC, tempUnit)}</span>
+            </div>
+          )}
+
+          <button
+            type="button"
+            className="edit-city-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit();
+            }}
+            title="Change City"
+          >
+            <Edit3 size={14} />
+          </button>
+        </div>
       </div>
 
       <div className="world-clock-body">
@@ -82,6 +111,7 @@ export default function WorldClockCard({
             mini={true}
             showSeconds={false}
             smoothSweep={smoothSweep}
+            showDayDate={false}
           />
         </div>
 
@@ -89,6 +119,13 @@ export default function WorldClockCard({
           <div className="world-clock-digital">
             <span className="world-digital-text">{timeStr}</span>
             {ampm && <span className="world-digital-ampm">{ampm}</span>}
+          </div>
+
+          {/* Weekday & Date for World City */}
+          <div className="world-city-date-row">
+            <span className="world-city-weekday">{time.weekdayShort}</span>
+            <span className="world-city-date-sep">·</span>
+            <span className="world-city-date">{time.day} {time.monthShort}</span>
           </div>
 
           <div className="world-clock-subtext">
