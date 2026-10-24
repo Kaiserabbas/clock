@@ -1,16 +1,26 @@
 {
   "short_name": "Clock",
-  "name": "World Clock & Local Time",
+  "name": "World Clock & Precision Suite",
   "icons": [
     {
       "src": "/icon.svg",
       "type": "image/svg+xml",
-      "sizes": "192x192 512x512"
+      "sizes": "any"
+    },
+    {
+      "src": "/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
     }
   ],
   "start_url": "/",
-  "background_color": "#12151c",
-  "theme_color": "#12151c",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
   "display": "standalone",
-  "orientation": "portrait-primary"
+  "orientation": "any"
 }
