@@ -10,8 +10,7 @@ import {
   Calendar,
   Thermometer,
   Clock,
-  Eye,
-  Sliders,
+  ArrowLeftRight,
   Globe,
 } from "lucide-react";
 import { StatusBar } from "@capacitor/status-bar";
@@ -29,6 +28,7 @@ export default function FullscreenDeskClock({
 }) {
   const [isDimmed, setIsDimmed] = useState(false);
   const [clockMode, setClockMode] = useState("both"); // 'both' | 'digital' | 'analog'
+  const [flipSides, setFlipSides] = useState(false); // false: analog left, digital right | true: digital left, analog right
   const [controlsVisible, setControlsVisible] = useState(true);
   const hideTimerRef = useRef(null);
   const wakeLockRef = useRef(null);
@@ -116,7 +116,7 @@ export default function FullscreenDeskClock({
             }}
             title={isDimmed ? "Restore Brightness" : "Nightstand Dim Mode"}
           >
-            <Moon size={18} />
+            <Moon size={16} />
             <span className="fs-tool-text">{isDimmed ? "Bright" : "Dim"}</span>
           </button>
 
@@ -135,15 +135,30 @@ export default function FullscreenDeskClock({
             }}
             title="Toggle Clock Layout"
           >
-            <Clock size={18} />
+            <Clock size={16} />
             <span className="fs-tool-text">
               {clockMode === "both"
-                ? "Digital View"
+                ? "Digital Only"
                 : clockMode === "digital"
-                ? "Analog View"
-                : "Dual View"}
+                ? "Analog Only"
+                : "Side by Side"}
             </span>
           </button>
+
+          {clockMode === "both" && (
+            <button
+              type="button"
+              className={`fs-tool-btn ${flipSides ? "active" : ""}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                setFlipSides(!flipSides);
+              }}
+              title="Flip Analog / Digital Sides"
+            >
+              <ArrowLeftRight size={16} />
+              <span className="fs-tool-text">Flip</span>
+            </button>
+          )}
         </div>
 
         <div className="fs-controls-right">
@@ -156,15 +171,19 @@ export default function FullscreenDeskClock({
             }}
             title="Exit Fullscreen (Esc)"
           >
-            <Minimize2 size={20} />
-            <span className="fs-tool-text">Exit Fullscreen</span>
+            <Minimize2 size={18} />
+            <span className="fs-tool-text">Exit</span>
           </button>
         </div>
       </div>
 
-      {/* Main Clock Stage */}
-      <div className={`fullscreen-stage layout-${clockMode}`}>
-        {/* Analog Dial (if mode is 'both' or 'analog') */}
+      {/* Main Clock Stage - Side by Side on Mobile */}
+      <div
+        className={`fullscreen-stage layout-${clockMode} ${
+          flipSides ? "flip-sides" : ""
+        }`}
+      >
+        {/* Analog Dial (on one side) */}
         {(clockMode === "both" || clockMode === "analog") && (
           <div className="fs-analog-wrapper">
             <AnalogClock
@@ -177,10 +196,10 @@ export default function FullscreenDeskClock({
           </div>
         )}
 
-        {/* Digital Info Block (if mode is 'both' or 'digital') */}
+        {/* Digital Info Block (on the other side) */}
         {(clockMode === "both" || clockMode === "digital") && (
           <div className="fs-info-wrapper">
-            {/* Massive Digital Time */}
+            {/* Digital Time */}
             <div
               className="fs-digital-time-wrap"
               onClick={(e) => {
@@ -198,11 +217,10 @@ export default function FullscreenDeskClock({
             {/* Weekday & Full Date */}
             <div className="fs-date-strip">
               <span className="fs-weekday-pill">{time.weekdayLong}</span>
-              <span className="fs-date-bullet">·</span>
               <div className="fs-date-group">
-                <Calendar size={18} className="fs-calendar-icon" />
+                <Calendar size={15} className="fs-calendar-icon" />
                 <span className="fs-full-date">
-                  {time.day} {time.monthLong} {time.year}
+                  {time.day} {time.monthShort} {time.year}
                 </span>
               </div>
             </div>
@@ -217,7 +235,7 @@ export default function FullscreenDeskClock({
                 }}
                 title="Tap to switch °C / °F"
               >
-                <WeatherIcon condition={weather.condition} size={22} />
+                <WeatherIcon condition={weather.condition} size={18} />
                 <span className="fs-temp-val">
                   {formatTemperature(weather.tempC, tempUnit)}
                 </span>
@@ -247,7 +265,7 @@ export default function FullscreenDeskClock({
 
             return (
               <div key={i} className="fs-city-chip">
-                <Globe size={13} className="fs-city-icon" />
+                <Globe size={12} className="fs-city-icon" />
                 <span className="fs-city-name">{c.name}</span>
                 <span className="fs-city-time">
                   {h}:{m} {ampmVal}

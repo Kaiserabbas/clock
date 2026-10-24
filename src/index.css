@@ -112,7 +112,7 @@ body {
 .desktop-nav {
   display: none;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   background: var(--card-bg);
   padding: 4px;
   border-radius: 999px;
@@ -132,9 +132,9 @@ body {
   background: transparent;
   color: var(--muted);
   border: none;
-  padding: 6px 16px;
+  padding: 6px 14px;
   border-radius: 999px;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -575,7 +575,7 @@ body {
   justify-content: space-around;
   background-color: var(--card-bg);
   border-top: 1px solid var(--border);
-  padding: 8px 16px calc(env(safe-area-inset-bottom, 10px) + 4px);
+  padding: 8px 8px calc(env(safe-area-inset-bottom, 10px) + 4px);
   z-index: 100;
   box-shadow: 0 -4px 16px rgba(0,0,0,0.15);
 }
@@ -597,10 +597,11 @@ body {
   font-size: 11px;
   font-weight: 600;
   cursor: pointer;
-  padding: 4px 12px;
+  padding: 4px 8px;
   border-radius: 8px;
   transition: all 0.15s ease;
-  min-width: 64px;
+  flex: 1;
+  max-width: 72px;
 }
 
 .bottom-nav-item.active {
@@ -1241,7 +1242,7 @@ body {
 }
 
 /* =========================================================
-   FULLSCREEN DESK / STANDBY MODE
+   FULLSCREEN DESK / STANDBY MODE (SIDE BY SIDE ON MOBILE)
    ========================================================= */
 .fullscreen-desk-container {
   position: fixed;
@@ -1255,7 +1256,7 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: env(safe-area-inset-top, 20px) env(safe-area-inset-right, 24px) env(safe-area-inset-bottom, 20px) env(safe-area-inset-left, 24px);
+  padding: env(safe-area-inset-top, 16px) env(safe-area-inset-right, 16px) env(safe-area-inset-bottom, 16px) env(safe-area-inset-left, 16px);
   user-select: none;
   overflow: hidden;
   transition: opacity 0.3s ease, filter 0.3s ease;
@@ -1290,19 +1291,19 @@ body {
 .fs-controls-left, .fs-controls-right {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .fs-tool-btn, .fs-exit-btn {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   background: var(--card-bg);
   color: var(--ink);
   border: 1px solid var(--border);
-  padding: 8px 14px;
+  padding: 6px 12px;
   border-radius: 999px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   box-shadow: 0 4px 12px rgba(0,0,0,0.25);
@@ -1325,73 +1326,90 @@ body {
   display: inline;
 }
 
-/* Fullscreen Stage */
+/* Fullscreen Stage - SIDE BY SIDE ON MOBILE & DESKTOP */
 .fullscreen-stage {
   flex: 1;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 24px;
   width: 100%;
   max-width: 1100px;
   margin: 0 auto;
-  padding: 10px 0;
+  padding: 8px 0;
 }
 
-/* Landscape Mode for Docked Phones & Tablets */
-@media (orientation: landscape) and (min-height: 380px) {
-  .fullscreen-stage.layout-both {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-around;
-    gap: 40px;
-  }
+.fullscreen-stage.layout-both {
+  flex-direction: row; /* Always row / side-by-side */
+  justify-content: center;
+  gap: clamp(10px, 3.5vw, 40px);
 }
 
+.fullscreen-stage.layout-both.flip-sides {
+  flex-direction: row-reverse; /* Flip analog and digital sides */
+}
+
+.fullscreen-stage.layout-digital,
+.fullscreen-stage.layout-analog {
+  flex-direction: column;
+}
+
+/* Analog side */
 .fs-analog-wrapper {
-  width: min(65vw, 400px);
-  max-height: min(65vw, 400px);
+  flex: 1 1 48%;
+  max-width: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
 }
 
-@media (orientation: landscape) {
-  .fs-analog-wrapper {
-    width: min(70vh, 420px);
-    max-height: min(70vh, 420px);
-  }
+.fs-analog-clock {
+  width: min(48vw, 380px);
+  max-height: min(78vh, 380px);
 }
 
+/* Digital side */
 .fs-info-wrapper {
+  flex: 1 1 52%;
+  max-width: 52%;
   display: flex;
   flex-direction: column;
+  align-items: flex-start; /* Clean left aligned side */
+  justify-content: center;
+  gap: clamp(6px, 1.8vh, 16px);
+  text-align: left;
+}
+
+.fullscreen-stage.layout-digital .fs-info-wrapper {
+  max-width: 100%;
   align-items: center;
-  gap: 12px;
   text-align: center;
 }
 
 .fs-digital-time-wrap {
   display: inline-flex;
   align-items: baseline;
-  gap: 10px;
+  gap: 6px;
   cursor: pointer;
+  line-height: 1;
 }
 
 .fs-digital-time {
-  font-size: clamp(48px, 12vw, 84px);
+  font-size: clamp(30px, 7.8vw, 76px);
   font-weight: 800;
-  letter-spacing: -2px;
+  letter-spacing: -1.5px;
   font-variant-numeric: tabular-nums;
-  line-height: 1;
   color: var(--ink);
+  line-height: 1;
 }
 
 .fs-digital-time.ultra-large {
-  font-size: clamp(72px, 20vw, 160px);
-  letter-spacing: -4px;
+  font-size: clamp(68px, 18vw, 150px);
+  letter-spacing: -3px;
 }
 
 .fs-digital-ampm {
-  font-size: clamp(20px, 4vw, 32px);
+  font-size: clamp(13px, 3vw, 24px);
   font-weight: 800;
   color: var(--accent);
 }
@@ -1399,32 +1417,25 @@ body {
 .fs-date-strip {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
-  justify-content: center;
 }
 
 .fs-weekday-pill {
   background: var(--accent);
   color: #ffffff;
-  padding: 4px 14px;
+  padding: 3px 12px;
   border-radius: 999px;
-  font-size: clamp(13px, 2vw, 16px);
+  font-size: clamp(11px, 2.4vw, 15px);
   font-weight: 800;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
   text-transform: uppercase;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-}
-
-.fs-date-bullet {
-  color: var(--muted);
-  font-size: 16px;
 }
 
 .fs-date-group {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .fs-calendar-icon {
@@ -1432,19 +1443,18 @@ body {
 }
 
 .fs-full-date {
-  font-size: clamp(16px, 2.8vw, 24px);
+  font-size: clamp(13px, 2.6vw, 20px);
   font-weight: 700;
   color: var(--ink);
-  letter-spacing: 0.2px;
 }
 
 .fs-weather-strip {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   background: var(--card-bg);
   border: 1px solid var(--border);
-  padding: 6px 18px;
+  padding: 4px 14px;
   border-radius: 999px;
   cursor: pointer;
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
@@ -1456,13 +1466,13 @@ body {
 }
 
 .fs-temp-val {
-  font-size: clamp(16px, 2.5vw, 22px);
+  font-size: clamp(14px, 2.5vw, 20px);
   font-weight: 800;
   color: var(--ink);
 }
 
 .fs-temp-condition {
-  font-size: clamp(13px, 2vw, 16px);
+  font-size: clamp(11px, 2vw, 14px);
   font-weight: 600;
   color: var(--muted);
 }
@@ -1472,9 +1482,9 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: 8px;
   flex-wrap: wrap;
-  padding-top: 8px;
+  padding-top: 6px;
   transition: opacity 0.35s ease;
 }
 
@@ -1491,12 +1501,12 @@ body {
 .fs-city-chip {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   background: var(--card-bg);
   border: 1px solid var(--border);
-  padding: 4px 12px;
+  padding: 3px 10px;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: 11px;
   color: var(--muted);
 }
 
@@ -1514,7 +1524,691 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* Keyframes */
+/* =========================================================
+   STOPWATCH STYLES
+   ========================================================= */
+.stopwatch-container, .timer-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 10px 0 20px;
+}
+
+.stopwatch-dial-wrapper, .timer-dial-wrapper {
+  position: relative;
+  width: min(74vw, 280px);
+  height: min(74vw, 280px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stopwatch-dial-svg, .timer-dial-svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(0deg);
+}
+
+.stopwatch-time-content, .timer-time-content {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.sw-time-main {
+  font-size: clamp(38px, 9vw, 54px);
+  font-weight: 800;
+  letter-spacing: -1px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+.sw-time-centis {
+  font-size: clamp(18px, 4vw, 24px);
+  font-weight: 700;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.stopwatch-actions, .timer-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  width: 100%;
+}
+
+.sw-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  padding: 12px 24px;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.15s ease;
+  min-width: 110px;
+}
+
+.sw-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.sw-btn-secondary {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  color: var(--ink);
+}
+
+.sw-btn-secondary:not(:disabled):hover {
+  background: var(--border);
+}
+
+.sw-btn-primary {
+  color: #ffffff;
+}
+
+.sw-btn-start {
+  background: #10b981;
+}
+
+.sw-btn-start:hover {
+  background: #059669;
+}
+
+.sw-btn-stop {
+  background: #ef4444;
+}
+
+.sw-btn-stop:hover {
+  background: #dc2626;
+}
+
+/* Laps */
+.stopwatch-laps-wrapper {
+  width: 100%;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 12px 16px;
+  margin-top: 8px;
+}
+
+.laps-header {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.laps-header span:nth-child(2),
+.laps-header span:nth-child(3) {
+  text-align: right;
+}
+
+.laps-list {
+  max-height: 220px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.lap-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+.lap-row:last-child {
+  border-bottom: none;
+}
+
+.lap-duration, .lap-total {
+  text-align: right;
+}
+
+.lap-best {
+  color: #10b981;
+}
+
+.lap-worst {
+  color: #ef4444;
+}
+
+/* =========================================================
+   TIMER STYLES
+   ========================================================= */
+.timer-time-text {
+  font-size: clamp(40px, 9vw, 56px);
+  font-weight: 800;
+  letter-spacing: -1px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+.timer-subtext {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.timer-presets-section, .custom-timer-setup {
+  width: 100%;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.presets-label {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+}
+
+.presets-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.preset-btn {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 8px 0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.preset-btn:hover {
+  border-color: var(--accent);
+}
+
+.preset-btn.active {
+  background: var(--accent);
+  color: #ffffff;
+  border-color: var(--accent);
+}
+
+.time-picker-inputs {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.picker-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.picker-col label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.picker-col input {
+  width: 68px;
+  height: 48px;
+  font-size: 22px;
+  font-weight: 800;
+  text-align: center;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--ink);
+  outline: none;
+}
+
+.picker-col input:focus {
+  border-color: var(--accent);
+}
+
+.picker-sep {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--muted);
+  margin-top: 14px;
+}
+
+.timer-finished-banner {
+  width: 100%;
+  background: var(--accent);
+  color: #ffffff;
+  border-radius: 16px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  animation: pulseScale 1.5s infinite;
+}
+
+.timer-finished-content {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.ringing-bell {
+  animation: ringShake 0.6s infinite ease-in-out;
+}
+
+.timer-finished-title {
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.timer-finished-subtitle {
+  font-size: 13px;
+  opacity: 0.9;
+}
+
+.dismiss-timer-btn {
+  background: #ffffff;
+  color: var(--accent);
+  font-weight: 800;
+}
+
+/* =========================================================
+   ALARMS STYLES
+   ========================================================= */
+.alarm-tab-container {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding-bottom: 24px;
+}
+
+.alarm-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.add-alarm-btn {
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 13px;
+}
+
+.alarms-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.empty-alarms-card {
+  background: var(--card-bg);
+  border: 1px dashed var(--border);
+  border-radius: 16px;
+  padding: 40px 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.empty-bell-icon {
+  color: var(--muted);
+  opacity: 0.5;
+  margin-bottom: 4px;
+}
+
+.empty-alarms-card h3 {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.empty-alarms-card p {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.alarm-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  transition: all 0.2s ease;
+}
+
+.alarm-card.disabled {
+  opacity: 0.6;
+}
+
+.alarm-card-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.alarm-time-display {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.alarm-time-numbers {
+  font-size: 32px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  color: var(--ink);
+}
+
+.alarm-period {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--accent);
+}
+
+.alarm-details-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.alarm-label {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.alarm-dot {
+  opacity: 0.5;
+}
+
+.alarm-card-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* iOS-style Switch Toggle */
+.alarm-switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 28px;
+}
+
+.alarm-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background-color: var(--border);
+  transition: 0.25s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: 0.25s;
+}
+
+input:checked + .slider {
+  background-color: var(--accent);
+}
+
+input:checked + .slider:before {
+  transform: translateX(22px);
+}
+
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+.alarm-delete-btn {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.alarm-delete-btn:hover {
+  color: #ef4444;
+}
+
+/* Alarm Time Selector in Modal */
+.alarm-time-selector-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 10px 0;
+}
+
+.alarm-time-picker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.alarm-time-input {
+  width: 72px;
+  height: 60px;
+  font-size: 32px;
+  font-weight: 800;
+  text-align: center;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--ink);
+  outline: none;
+}
+
+.alarm-time-input:focus {
+  border-color: var(--accent);
+}
+
+.alarm-picker-sep {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--muted);
+}
+
+.ampm-toggle-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-left: 6px;
+}
+
+.ampm-btn {
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.ampm-btn.active {
+  background: var(--accent);
+  color: #ffffff;
+  border-color: var(--accent);
+}
+
+.repeat-days-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
+.day-chip {
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 8px 0;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--muted);
+  cursor: pointer;
+  text-align: center;
+}
+
+.day-chip.selected {
+  background: var(--ink);
+  color: var(--bg);
+  border-color: var(--ink);
+}
+
+/* Ringing Alarm Modal Overlay */
+.ringing-alarm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(10px);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  animation: fadeIn 0.25s ease-out;
+}
+
+.ringing-alarm-card {
+  background: var(--card-bg);
+  border: 2px solid var(--accent);
+  border-radius: 24px;
+  padding: 32px 24px;
+  width: 100%;
+  max-width: 380px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 16px 40px rgba(0,0,0,0.5);
+  animation: ringPulse 1.2s infinite ease-in-out;
+}
+
+.ringing-bell-pulse {
+  color: var(--accent);
+  animation: ringShake 0.5s infinite ease-in-out;
+}
+
+.ringing-alarm-time {
+  font-size: 48px;
+  font-weight: 800;
+  color: var(--ink);
+  letter-spacing: -1px;
+}
+
+.ringing-alarm-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.ringing-alarm-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.snooze-btn, .dismiss-btn {
+  flex: 1;
+  padding: 12px 0;
+  font-size: 15px;
+}
+
+/* Animations */
+@keyframes ringShake {
+  0% { transform: rotate(0); }
+  20% { transform: rotate(-15deg); }
+  40% { transform: rotate(15deg); }
+  60% { transform: rotate(-10deg); }
+  80% { transform: rotate(10deg); }
+  100% { transform: rotate(0); }
+}
+
+@keyframes ringPulse {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+  50% { transform: scale(1.02); box-shadow: 0 0 0 16px rgba(239, 68, 68, 0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+@keyframes pulseScale {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
