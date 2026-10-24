@@ -1,0 +1,13 @@
+{
+  "appId": "com.kaiserabbas.clock",
+  "appName": "World Clock",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "StatusBar": {
+      "overlaysWebView": false
+    }
+  }
+}

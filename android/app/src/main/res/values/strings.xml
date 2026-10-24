@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">World Clock</string>
+    <string name="title_activity_main">World Clock</string>
+    <string name="package_name">com.kaiserabbas.clock</string>
+    <string name="custom_url_scheme">com.kaiserabbas.clock</string>
+</resources>
