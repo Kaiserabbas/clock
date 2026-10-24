@@ -134,10 +134,19 @@ export default function App() {
     };
   }, [localTz]);
 
-  // Capacitor Native Status Bar & Back Button Integration
+  // Capacitor Native Status Bar, Document Background & Back Button Integration
   useEffect(() => {
-    if (isFullscreen) return;
     const theme = THEMES[settings.theme] || THEMES.midnight;
+    try {
+      document.documentElement.style.backgroundColor = theme.bg;
+      document.body.style.backgroundColor = theme.bg;
+      const rootEl = document.getElementById("root");
+      if (rootEl) rootEl.style.backgroundColor = theme.bg;
+      const metaTheme = document.querySelector('meta[name="theme-color"]');
+      if (metaTheme) metaTheme.setAttribute("content", theme.bg);
+    } catch (e) {}
+
+    if (isFullscreen) return;
     try {
       StatusBar.setBackgroundColor({ color: theme.bg }).catch(() => {});
       const isDark =
