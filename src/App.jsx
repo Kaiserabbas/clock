@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import AnalogClock from "./components/AnalogClock";
 import DigitalDisplay from "./components/DigitalDisplay";
 import WorldClockCard from "./components/WorldClockCard";
@@ -6,19 +6,48 @@ import AppearanceSettings from "./components/AppearanceSettings";
 import CitySettings from "./components/CitySettings";
 import TimezonePickerModal from "./components/TimezonePickerModal";
 import FullscreenDeskClock from "./components/FullscreenDeskClock";
+import AlarmTab from "./components/AlarmTab";
+import StopwatchTab from "./components/StopwatchTab";
+import TimerTab from "./components/TimerTab";
 import { THEMES, FONTS, STORAGE_KEY, DEFAULT_SETTINGS } from "./constants/themes";
 import { readTime } from "./utils/time";
 import { getWeatherForTimezone } from "./services/weather";
+import { startAlarmChime, stopAlarmChime } from "./utils/audio";
 import {
   Clock as ClockIcon,
   Globe,
   Palette,
   Settings,
   Maximize2,
-  Calendar,
+  Bell,
+  Timer as TimerIcon,
+  Hourglass,
+  Check,
+  RotateCcw,
 } from "lucide-react";
 import { App as CapApp } from "@capacitor/app";
 import { StatusBar, Style } from "@capacitor/status-bar";
+
+const ALARMS_STORAGE_KEY = "clock_alarms_v1";
+
+const DEFAULT_ALARMS = [
+  {
+    id: "1",
+    hour: 7,
+    minute: 0,
+    label: "Wake Up Routine",
+    repeatDays: [1, 2, 3, 4, 5],
+    enabled: true,
+  },
+  {
+    id: "2",
+    hour: 22,
+    minute: 30,
+    label: "Evening Wind Down",
+    repeatDays: [0, 1, 2, 3, 4, 5, 6],
+    enabled: false,
+  },
+];
 
 function loadSettings() {
   try {
@@ -35,13 +64,28 @@ function loadSettings() {
   return DEFAULT_SETTINGS;
 }
 
+function loadAlarms() {
+  try {
+    const raw = window.localStorage.getItem(ALARMS_STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch (e) {}
+  return DEFAULT_ALARMS;
+}
+
 export default function App() {
-  const [activeTab, setActiveTab] = useState("clock"); // 'clock' | 'cities' | 'appearance'
+  const [activeTab, setActiveTab] = useState("clock"); // 'clock' | 'alarm' | 'stopwatch' | 'timer' | 'cities' | 'appearance'
   const [settings, setSettings] = useState(loadSettings);
+  const [alarms, setAlarms] = useState(loadAlarms);
   const [now, setNow] = useState(() => new Date());
   const [editingCityIndex, setEditingCityIndex] = useState(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [localWeather, setLocalWeather] = useState(null);
+  const [ringingAlarm, setRingingAlarm] = useState(null);
+
+  const lastTriggeredMinuteRef = useRef(null);
 
   // High precision timer for clock hands
   useEffect(() => {
@@ -51,6 +95,30 @@ export default function App() {
     }, intervalMs);
     return () => clearInterval(intervalId);
   }, [settings.smoothSweep]);
+
+  // Alarms Monitor
+  useEffect(() => {
+    const currentH = now.getHours();
+    const currentM = now.getMinutes();
+    const currentS = now.getSeconds();
+    const dayOfWeek = now.getDay();
+    const currentKey = `${currentH}:${currentM}`;
+
+    if (currentS <= 1 && lastTriggeredMinuteRef.current !== currentKey) {
+      const matching = alarms.find((a) => {
+        if (!a.enabled) return false;
+        if (a.hour !== currentH || a.minute !== currentM) return false;
+        if (!a.repeatDays || a.repeatDays.length === 0) return true; // once
+        return a.repeatDays.includes(dayOfWeek);
+      });
+
+      if (matching) {
+        lastTriggeredMinuteRef.current = currentKey;
+        setRingingAlarm(matching);
+        startAlarmChime();
+      }
+    }
+  }, [now, alarms]);
 
   // Fetch local weather
   const localTz = Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Dubai";
@@ -108,7 +176,9 @@ export default function App() {
     let removeListener = null;
     try {
       const backListener = CapApp.addListener("backButton", ({ canGoBack }) => {
-        if (isFullscreen) {
+        if (ringingAlarm) {
+          handleDismissRingingAlarm();
+        } else if (isFullscreen) {
           exitFullscreenMode();
         } else if (editingCityIndex !== null) {
           setEditingCityIndex(null);
@@ -127,16 +197,46 @@ export default function App() {
     return () => {
       if (removeListener) removeListener();
     };
-  }, [activeTab, editingCityIndex, isFullscreen]);
+  }, [activeTab, editingCityIndex, isFullscreen, ringingAlarm]);
 
   const saveSettings = useCallback((newSettings) => {
     setSettings(newSettings);
     try {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(newSettings));
-    } catch (e) {
-      // ignore
-    }
+    } catch (e) {}
   }, []);
+
+  const saveAlarms = useCallback((newAlarms) => {
+    setAlarms(newAlarms);
+    try {
+      window.localStorage.setItem(ALARMS_STORAGE_KEY, JSON.stringify(newAlarms));
+    } catch (e) {}
+  }, []);
+
+  const handleDismissRingingAlarm = () => {
+    stopAlarmChime();
+    if (ringingAlarm && (!ringingAlarm.repeatDays || ringingAlarm.repeatDays.length === 0)) {
+      // Turn off if it was a one-time alarm
+      saveAlarms(alarms.map((a) => (a.id === ringingAlarm.id ? { ...a, enabled: false } : a)));
+    }
+    setRingingAlarm(null);
+  };
+
+  const handleSnoozeAlarm = () => {
+    stopAlarmChime();
+    setRingingAlarm(null);
+    // Snooze 5 minutes
+    const snoozeDate = new Date(Date.now() + 5 * 60 * 1000);
+    const snoozedAlarm = {
+      id: `snooze_${Date.now()}`,
+      hour: snoozeDate.getHours(),
+      minute: snoozeDate.getMinutes(),
+      label: `Snooze: ${ringingAlarm?.label || "Alarm"}`,
+      repeatDays: [],
+      enabled: true,
+    };
+    saveAlarms([...alarms, snoozedAlarm]);
+  };
 
   const enterFullscreenMode = () => {
     setIsFullscreen(true);
@@ -224,6 +324,39 @@ export default function App() {
 
   return (
     <div className="clock-app" style={cssVariables}>
+      {/* Alarm Ringing Modal Alert */}
+      {ringingAlarm && (
+        <div className="ringing-alarm-overlay">
+          <div className="ringing-alarm-card">
+            <Bell size={48} className="ringing-bell-pulse" />
+            <h2 className="ringing-alarm-time">
+              {pad(ringingAlarm.hour)}:{pad(ringingAlarm.minute)}
+            </h2>
+            <p className="ringing-alarm-title">{ringingAlarm.label}</p>
+
+            <div className="ringing-alarm-actions">
+              <button
+                type="button"
+                className="btn btn-secondary snooze-btn"
+                onClick={handleSnoozeAlarm}
+              >
+                <RotateCcw size={16} />
+                <span>Snooze (5m)</span>
+              </button>
+
+              <button
+                type="button"
+                className="btn btn-primary dismiss-btn"
+                onClick={handleDismissRingingAlarm}
+              >
+                <Check size={18} />
+                <span>Dismiss</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Fullscreen Mobile / Desk Mode Overlay */}
       {isFullscreen ? (
         <FullscreenDeskClock
@@ -272,6 +405,30 @@ export default function App() {
                 </button>
                 <button
                   type="button"
+                  className={`nav-pill ${activeTab === "alarm" ? "active" : ""}`}
+                  onClick={() => setActiveTab("alarm")}
+                >
+                  <Bell size={16} />
+                  <span>Alarm</span>
+                </button>
+                <button
+                  type="button"
+                  className={`nav-pill ${activeTab === "stopwatch" ? "active" : ""}`}
+                  onClick={() => setActiveTab("stopwatch")}
+                >
+                  <Hourglass size={16} />
+                  <span>Stopwatch</span>
+                </button>
+                <button
+                  type="button"
+                  className={`nav-pill ${activeTab === "timer" ? "active" : ""}`}
+                  onClick={() => setActiveTab("timer")}
+                >
+                  <TimerIcon size={16} />
+                  <span>Timer</span>
+                </button>
+                <button
+                  type="button"
                   className={`nav-pill ${activeTab === "cities" ? "active" : ""}`}
                   onClick={() => setActiveTab("cities")}
                 >
@@ -284,7 +441,7 @@ export default function App() {
                   onClick={() => setActiveTab("appearance")}
                 >
                   <Palette size={16} />
-                  <span>Theme & Style</span>
+                  <span>Theme</span>
                 </button>
               </nav>
             </div>
@@ -364,6 +521,18 @@ export default function App() {
               </div>
             )}
 
+            {activeTab === "alarm" && (
+              <AlarmTab
+                alarms={alarms}
+                onSaveAlarms={saveAlarms}
+                is24Hour={settings.is24Hour}
+              />
+            )}
+
+            {activeTab === "stopwatch" && <StopwatchTab />}
+
+            {activeTab === "timer" && <TimerTab />}
+
             {activeTab === "cities" && (
               <CitySettings
                 cities={settings.cities}
@@ -392,24 +561,42 @@ export default function App() {
               className={`bottom-nav-item ${activeTab === "clock" ? "active" : ""}`}
               onClick={() => setActiveTab("clock")}
             >
-              <ClockIcon size={20} />
+              <ClockIcon size={19} />
               <span>Clock</span>
             </button>
             <button
               type="button"
-              className={`bottom-nav-item ${activeTab === "cities" ? "active" : ""}`}
-              onClick={() => setActiveTab("cities")}
+              className={`bottom-nav-item ${activeTab === "alarm" ? "active" : ""}`}
+              onClick={() => setActiveTab("alarm")}
             >
-              <Globe size={20} />
-              <span>Cities</span>
+              <Bell size={19} />
+              <span>Alarm</span>
             </button>
             <button
               type="button"
-              className={`bottom-nav-item ${activeTab === "appearance" ? "active" : ""}`}
+              className={`bottom-nav-item ${activeTab === "stopwatch" ? "active" : ""}`}
+              onClick={() => setActiveTab("stopwatch")}
+            >
+              <Hourglass size={19} />
+              <span>Stopwatch</span>
+            </button>
+            <button
+              type="button"
+              className={`bottom-nav-item ${activeTab === "timer" ? "active" : ""}`}
+              onClick={() => setActiveTab("timer")}
+            >
+              <TimerIcon size={19} />
+              <span>Timer</span>
+            </button>
+            <button
+              type="button"
+              className={`bottom-nav-item ${
+                activeTab === "appearance" || activeTab === "cities" ? "active" : ""
+              }`}
               onClick={() => setActiveTab("appearance")}
             >
-              <Palette size={20} />
-              <span>Appearance</span>
+              <Palette size={19} />
+              <span>Theme</span>
             </button>
           </nav>
 
