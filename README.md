@@ -1,62 +1,53 @@
-# World Clock & Precision Time
+# World Clock, Timer, Stopwatch & Alarms
 
-A modern, responsive, mobile-first World Clock application built with React 19, Vite, and Capacitor for Android.
+A modern, responsive, mobile-first Clock & Precision Time suite built with React 19, Vite, and Capacitor for Android.
 
 ![World Clock Preview](public/icon.svg)
 
-## New Features
+## Features
 
-- 🖥️ **Fullscreen StandBy / Desk Clock Mode**:
-  - Immersive full-screen nightstand/desk mode with native Fullscreen API and Capacitor status bar hiding.
-  - **Screen WakeLock API**: Prevents the screen from turning off while docked on a charging stand or bedside table.
-  - **Dual Display & Minimalist Modes**: Toggle between combined Analog + Digital or ultra-large minimalist digital clock.
+- 🖥️ **Mobile Fullscreen StandBy / Desk Mode (Side-by-Side)**:
+  - Analog dial on one side and digital time, weekday, date, and weather on the other side.
+  - Interactive "Flip" toggle to swap analog and digital positions.
+  - **Screen WakeLock API**: Keeps screen on while docked on desk or bedside table.
   - **Nightstand Dim Mode**: Soft brightness reduction for dark rooms.
-  - Auto-hiding control buttons with tap-to-reveal.
-  - Full landscape and portrait responsiveness.
-- 🌡️ **Live Temperature & Weather Conditions**:
+  - Auto-hiding controls with tap-to-reveal.
+- ⏰ **Alarms Suite**:
+  - Set multiple alarms with custom time, labels, and repeat days (weekdays, weekends, custom, or once).
+  - Web Audio API alarm melody generator (no external audio assets required).
+  - Ringing overlay with **Snooze (5 mins)** and **Dismiss** options.
+  - Hardware back button handling on Android.
+- ⏱️ **Precision Stopwatch**:
+  - Centisecond accuracy (00:00:00.00) with animated radial second sweep.
+  - Lap recording with automated **Best Lap** (green) and **Worst Lap** (red) highlighting.
+- ⏳ **Countdown Timer**:
+  - Circular progress ring with smooth countdown visualization.
+  - Quick presets: 1m, 3m, 5m, 10m, 15m, 25m (Pomodoro), 30m, 1h + custom hours/minutes/seconds.
+  - +1 minute quick extension button and audio chime alert.
+- 🌡️ **Live Temperature & Weather**:
   - Live local weather powered by Open-Meteo with 20-minute local caching.
-  - Dynamic weather condition icons (Sunny, Clear night, Partly Cloudy, Rain, Thunderstorm, Snow, Fog).
   - One-tap toggle between **Celsius (°C)** and **Fahrenheit (°F)**.
-  - City-level temperatures displayed directly on world clock cards!
-- 📅 **Prominent Date & Weekday Display**:
-  - High-visibility Weekday badge (`SATURDAY`, `SUNDAY`, etc.) and full Calendar Date (`24 October 2026`).
-  - **Luxury Watch Day-Date Aperture**: Beveled aperture window at 3 o'clock on the analog dial displaying authentic `[ SAT | 24 ]`.
-  - Local weekday and date shown for each monitored world city.
-- ⏱ **Precision Analog Clock**: Fluid vector SVG rendering with smooth sweep or discrete second ticking.
-- 📱 **Mobile First & Responsive**: Optimized for phones and tablets with safe-area insets, mobile bottom navigation, and touch-optimized cards.
-- 🌍 **Multi-City World Clocks**: Track up to 6 time zones simultaneously with relative day/hour differences (`+4h`, `-5h`, `Tomorrow`, `Yesterday`) and automatic daytime/nighttime sun/moon indicators.
-- 🔍 **Interactive Timezone Search**: Search over 400+ IANA time zones or pick from popular global hubs with live time previews.
+  - City-level temperatures displayed directly on world clock cards.
+- 📅 **Date & Weekday Display**:
+  - High-visibility Weekday badge and full Calendar Date.
+  - **Luxury Watch Day-Date Aperture**: Beveled window at 3 o'clock on analog dial (`[ SAT | 24 ]`).
+- 🌍 **Multi-City World Clocks**: Track multiple time zones with relative day/hour differences (`+4h`, `-5h`, `Tomorrow`, `Yesterday`) and automatic daytime/nighttime sun/moon indicators.
 - 🎨 **6 Theme Presets & Customizer**:
-  - Classic Light
-  - Midnight Slate
-  - AMOLED Black (battery saver for OLED screens)
-  - Forest Emerald
-  - Warm Sepia
-  - Ocean Navy
-  - Granular color picker for dial, markers, numerals, hands, and accent seconds hand.
-- 🕒 **12h / 24h Modes**: Instant toggle between 12-hour AM/PM and 24-hour military digital formats.
-- 🤖 **Android Native App (Capacitor)**: Built and packaged into installable Android APK with native status bar theming and back button handling.
+  - Classic Light, Midnight Slate, AMOLED Black, Forest Emerald, Warm Sepia, Ocean Navy + granular color pickers.
+- 🤖 **Android Native App (Capacitor)**: Installable Android APK with native status bar theming and back button handling.
 
 ## Development
 
 ```bash
-# Install dependencies
 npm install
-
-# Start Vite dev server
 npm run dev
-
-# Build production web bundle
 npm run build
 ```
 
 ## Android APK Build
 
 ```bash
-# Sync web build to native Android
 npx cap sync android
-
-# Build debug APK using Gradle
 cd android
 ./gradlew assembleDebug
 ```
